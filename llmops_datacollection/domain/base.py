@@ -3,7 +3,7 @@ from abc import ABC
 from typing import Any, ClassVar, Dict, Generic, Type, TypeVar
 
 from loguru import logger
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from pydantic.types import UUID4
 from pymongo import errors
 
@@ -15,14 +15,19 @@ T = TypeVar("T", bound="NoSQLBaseDocument")
 class NoSQLBaseDocument(BaseModel, ABC):
     """Base document model with MongoDB integration."""
     
-    id: UUID4 = Field(default_factory=uuid.uuid4)
+    id: UUID4 = Field(default_factory=uuid.uuid4, alias="_id")
     _collection: ClassVar[str | None] = None
 
-    model_config = {
-        "arbitrary_types_allowed": True,
-        "populate_by_alias": True,
-        "extra": "allow"
-    }
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        populate_by_name=True,
+        extra='allow',
+        from_attributes=True,
+        json_encoders={
+            UUID4: str,  # Ensure UUID is converted to string for JSON
+            uuid.UUID: str  # Additional UUID conversion
+        }
+    )
 
     def __eq__(self, value: object) -> bool:
         if not isinstance(value, self.__class__):
@@ -97,18 +102,25 @@ class NoSQLBaseDocument(BaseModel, ABC):
 
     def to_mongo(self: T) -> dict:
         """Convert model instance to MongoDB document."""
-        parsed = self.model_dump()
+        # Convert the model to a dictionary
+        doc = self.model_dump(by_alias=True)
         
-        if "_id" not in parsed and "id" in parsed:
-            parsed["_id"] = str(parsed.pop("id"))
-
-        return parsed
+        # Ensure the _id is present
+        if '_id' not in doc and 'id' in doc:
+            doc['_id'] = doc.pop('id')
+        
+        return doc
 
     def save(self: T) -> T | None:
         """Save document to MongoDB."""
         collection = connection.get_collection(self.get_collection_name())
         try:
-            collection.insert_one(self.to_mongo())
+            # Convert the document to a format MongoDB can handle
+            mongo_doc = self.to_mongo()
+            
+            # Use the custom insert method
+            connection.insert_one(collection, mongo_doc)
+            
             return self
         except errors.WriteError:
             logger.exception("Failed to insert document")
@@ -122,9 +134,12 @@ class NoSQLBaseDocument(BaseModel, ABC):
 
         collection = connection.get_collection(cls.get_collection_name())
         try:
-            collection.insert_many(
-                [doc.to_mongo() for doc in documents]
-            )
+            # Convert documents to MongoDB-compatible format
+            mongo_docs = [doc.to_mongo() for doc in documents]
+            
+            # Use the custom insert method
+            connection.insert_many(collection, mongo_docs)
+            
             return True
         except errors.BulkWriteError:
             logger.error(f"Failed to bulk insert {cls.__name__} documents")

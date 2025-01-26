@@ -31,11 +31,12 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
-
+linkedin_debug
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
-
+linkedin_extraction_error.png
+linkedin_login_error.png
 # Unit test / coverage reports
 htmlcov/
 .tox/

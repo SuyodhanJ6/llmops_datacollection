@@ -5,6 +5,8 @@ from tempfile import mkdtemp
 import chromedriver_autoinstaller
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
 from llmops_datacollection.domain.base import NoSQLBaseDocument
 
@@ -21,20 +23,48 @@ class BaseCrawler(ABC):
         """Extract data from the given link."""
         pass
 
-class BaseSeleniumCrawler(BaseCrawler, ABC):
-    """Base Selenium-based crawler."""
+# class BaseSeleniumCrawler(BaseCrawler, ABC):
+#     """Base Selenium-based crawler."""
     
+#     def __init__(self, scroll_limit: int = 5) -> None:
+#         self.scroll_limit = scroll_limit
+#         self.driver = self._setup_driver()
+
+#     def _setup_driver(self) -> webdriver.Chrome:
+#         """Set up Chrome WebDriver."""
+#         options = webdriver.ChromeOptions()
+        
+#         # Configure Chrome options
+#         options.add_argument("--no-sandbox")
+#         options.add_argument("--headless=new")
+#         options.add_argument("--disable-dev-shm-usage")
+#         options.add_argument("--log-level=3")
+#         options.add_argument("--disable-popup-blocking")
+#         options.add_argument("--disable-notifications")
+#         options.add_argument("--disable-extensions")
+#         options.add_argument("--ignore-certificate-errors")
+        
+#         # Use temporary directories
+#         options.add_argument(f"--user-data-dir={mkdtemp()}")
+#         options.add_argument(f"--data-path={mkdtemp()}")
+#         options.add_argument(f"--disk-cache-dir={mkdtemp()}")
+        
+#         return webdriver.Chrome(options=options)
+
+
+
+class BaseSeleniumCrawler(BaseCrawler, ABC):
     def __init__(self, scroll_limit: int = 5) -> None:
         self.scroll_limit = scroll_limit
         self.driver = self._setup_driver()
 
     def _setup_driver(self) -> webdriver.Chrome:
-        """Set up Chrome WebDriver."""
+        """Set up Chrome WebDriver with WebDriver Manager."""
         options = webdriver.ChromeOptions()
         
         # Configure Chrome options
         options.add_argument("--no-sandbox")
-        options.add_argument("--headless=new")
+        options.add_argument("--headless")  # Run in headless mode
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--log-level=3")
         options.add_argument("--disable-popup-blocking")
@@ -47,8 +77,10 @@ class BaseSeleniumCrawler(BaseCrawler, ABC):
         options.add_argument(f"--data-path={mkdtemp()}")
         options.add_argument(f"--disk-cache-dir={mkdtemp()}")
         
-        return webdriver.Chrome(options=options)
-
+        # Use WebDriver Manager
+        service = Service(ChromeDriverManager().install())
+        
+        return webdriver.Chrome(service=service, options=options)
     def scroll_page(self) -> None:
         """Scroll through the page."""
         current_scroll = 0

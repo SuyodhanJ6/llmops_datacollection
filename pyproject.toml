@@ -15,6 +15,7 @@ pydantic-settings = "^2.1.0"
 click = "^8.1.7"
 notebook = "^7.3.2"
 chromedriver-autoinstaller = "^0.6.4"
+webdriver-manager = "^4.0.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
