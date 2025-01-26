@@ -4,11 +4,10 @@ from typing import Any, ClassVar, Dict, Generic, Type, TypeVar
 
 from loguru import logger
 from pydantic import BaseModel, Field
-from pydantic.types import UUID1, UUID4
+from pydantic.types import UUID4
 from pymongo import errors
-import uuid
 
-from llmops_datacollection.domain.exceptions import ImproperlyConfigured
+from llmops_datacollection.domain.exceptions import DatabaseError
 from llmops_datacollection.infrastructure.db.mongo import connection
 
 T = TypeVar("T", bound="NoSQLBaseDocument")
@@ -16,7 +15,7 @@ T = TypeVar("T", bound="NoSQLBaseDocument")
 class NoSQLBaseDocument(BaseModel, ABC):
     """Base document model with MongoDB integration."""
     
-    id: UUID4 = Field(default_factory=uuid.uuid4)  # Using UUID4 from pydantic.types
+    id: UUID4 = Field(default_factory=uuid.uuid4)
     _collection: ClassVar[str | None] = None
 
     model_config = {
@@ -33,7 +32,59 @@ class NoSQLBaseDocument(BaseModel, ABC):
     def __hash__(self) -> int:
         return hash(self.id)
 
+    @classmethod
+    def collection_exists(cls) -> bool:
+        """Check if collection exists in MongoDB."""
+        try:
+            collection_names = connection.list_collection_names()
+            return cls._collection in collection_names
+        except errors.OperationFailure as e:
+            logger.error(f"Failed to check collection existence: {str(e)}")
+            raise DatabaseError(f"Failed to check collection: {str(e)}")
 
+    @classmethod
+    def get_collection_name(cls) -> str:
+        """Get or create MongoDB collection name."""
+        if cls._collection is None:
+            raise ValueError(f"Collection name not set for {cls.__name__}")
+            
+        try:
+            # Get existing collection
+            connection.get_collection(cls._collection)
+        except errors.OperationFailure:
+            logger.info(f"Collection {cls._collection} does not exist, creating...")
+            try:
+                # Create new collection 
+                connection.create_collection(cls._collection)
+                logger.info(f"Successfully created collection {cls._collection}")
+            except errors.CollectionInvalid:
+                # Collection might have been created by another process
+                pass
+            except Exception as e:
+                logger.error(f"Failed to create collection {cls._collection}: {str(e)}")
+                raise DatabaseError(f"Failed to create collection: {str(e)}")
+                
+        return cls._collection
+
+    @classmethod
+    def get_or_create(cls: Type[T], **filter_options) -> T:
+        """Get an existing document or create a new one."""
+        collection = connection.get_collection(cls.get_collection_name())
+        try:
+            # Try to find existing document
+            if existing := collection.find_one(filter_options):
+                return cls.from_mongo(existing)
+                
+            # Create new document if not found
+            new_instance = cls(**filter_options)
+            if saved := new_instance.save():
+                return saved
+                
+            raise DatabaseError("Failed to save new document")
+            
+        except errors.OperationFailure as e:
+            logger.error(f"Database operation failed: {str(e)}")
+            raise DatabaseError(f"Database operation failed: {str(e)}")
 
     @classmethod
     def from_mongo(cls: Type[T], data: dict) -> T:
@@ -52,12 +103,6 @@ class NoSQLBaseDocument(BaseModel, ABC):
             parsed["_id"] = str(parsed.pop("id"))
 
         return parsed
-
-    @classmethod
-    def get_collection_name(cls) -> str:
-        if cls._collection is None:
-            raise ValueError(f"Collection name not set for {cls.__name__}")
-        return cls._collection
 
     def save(self: T) -> T | None:
         """Save document to MongoDB."""

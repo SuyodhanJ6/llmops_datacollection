@@ -1,4 +1,3 @@
-# llmops_datacollection/settings.py
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -32,8 +31,7 @@ class Settings(BaseSettings):
         "env_file": ".env",
         "env_file_encoding": "utf-8",
         "case_sensitive": True,
-        # Fields to hide when printing
-        "protected_namespaces": ('MONGODB_', 'LINKEDIN_', 'GITHUB_')
+        "protected_namespaces": ()  # Disable namespace warnings
     }
 
 settings = Settings()

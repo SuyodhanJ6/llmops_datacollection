@@ -11,8 +11,8 @@ from llmops_datacollection.domain.documents import UserDocument
 def user():
     """Create test user."""
     return UserDocument(
-        first_name="Test",
-        last_name="User"
+        first_name="Prashant",
+        last_name="Malge"
     )
 
 @pytest.fixture

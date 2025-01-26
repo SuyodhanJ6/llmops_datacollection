@@ -47,8 +47,9 @@ class MongoDBConnector:
         return self._db
     
     def get_collection(self, name: str) -> Collection:
+        """Get collection by name."""
         return self.db[name]
-    
+
     def create_collection(self, name: str, **kwargs: Any) -> Collection:
         """Create new collection."""
         try:
@@ -57,6 +58,10 @@ class MongoDBConnector:
             raise DatabaseError(
                 f"Failed to create collection {name}: {str(e)}"
             ) from e
+    
+    def list_collection_names(self) -> list[str]:
+        """Get list of collection names."""
+        return self.db.list_collection_names()
     
     def drop_collection(self, name: str) -> None:
         """Drop collection by name."""
