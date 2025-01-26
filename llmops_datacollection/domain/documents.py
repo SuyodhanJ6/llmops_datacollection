@@ -1,15 +1,15 @@
-from typing import Optional
-
-from pydantic import UUID4, Field
-
-from llmops_datacollection.domain.base import NoSQLBaseDocument
+# llmops_datacollection/domain/documents.py
+from typing import Optional, ClassVar
+from pydantic import BaseModel, Field
+from pydantic.types import UUID4  # Import UUID4 from pydantic.types
+from .base import NoSQLBaseDocument
 
 class UserDocument(NoSQLBaseDocument):
     """User document model."""
     
     first_name: str
     last_name: str
-    _collection = "users"
+    _collection: ClassVar[str] = "users"
 
     @property
     def full_name(self) -> str:
@@ -20,7 +20,7 @@ class ContentDocument(NoSQLBaseDocument):
     
     content: dict
     platform: str
-    author_id: UUID4 = Field(alias="author_id")
+    author_id: UUID4 = Field(alias="author_id")  # Using UUID4
     author_full_name: str = Field(alias="author_full_name")
 
 class ArticleDocument(ContentDocument):
@@ -28,18 +28,18 @@ class ArticleDocument(ContentDocument):
     
     link: str
     title: str
-    _collection = "articles"
+    _collection: ClassVar[str] = "articles"
 
 class PostDocument(ContentDocument):
     """Social media post document model."""
     
     link: Optional[str] = None
     image: Optional[str] = None
-    _collection = "posts"
+    _collection: ClassVar[str] = "posts"
 
 class RepositoryDocument(ContentDocument):
     """GitHub repository document model."""
     
     name: str
     link: str
-    _collection = "repositories"
+    _collection: ClassVar[str] = "repositories"

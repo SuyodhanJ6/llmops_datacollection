@@ -1,8 +1,8 @@
-"""LLMOps Data Collection module."""
+# """LLMOps Data Collection module."""
 
-__version__ = "0.1.0"
+# __version__ = "0.1.0"
 
-from llmops_datacollection import application, domain, infrastructure
-from llmops_datacollection.settings import settings
+# from llmops_datacollection import application, domain, infrastructure
+# from llmops_datacollection.settings import settings
 
-__all__ = ["settings", "application", "domain", "infrastructure"]
+# __all__ = ["settings", "application", "domain", "infrastructure"]

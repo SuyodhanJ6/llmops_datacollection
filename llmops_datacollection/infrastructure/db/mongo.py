@@ -1,5 +1,4 @@
 from typing import Any, Optional
-
 from loguru import logger
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -17,44 +16,37 @@ class MongoDBConnector:
     _db: Optional[Database] = None
     
     def __new__(cls) -> 'MongoDBConnector':
-        """Singleton pattern implementation."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
     
     def __init__(self) -> None:
-        """Initialize MongoDB connection."""
         if self._client is None:
             try:
-                self._client = MongoClient(settings.DATABASE_HOST)
+                self._client = MongoClient(settings.MONGODB_URI)
                 self._db = self._client[settings.DATABASE_NAME]
                 # Test connection
                 self._client.admin.command('ping')
                 logger.info(
-                    f"Connected to MongoDB at {settings.DATABASE_HOST}"
+                    f"Connected to MongoDB at {settings.MONGODB_URI}"
                     f" using database {settings.DATABASE_NAME}"
                 )
             except ConnectionFailure as e:
-                raise DatabaseError(
-                    f"Failed to connect to MongoDB: {str(e)}"
-                ) from e
-    
+                raise DatabaseError(f"Failed to connect to MongoDB: {str(e)}") from e
+
     @property
     def client(self) -> MongoClient:
-        """Get MongoDB client."""
         if self._client is None:
             raise DatabaseError("MongoDB client not initialized")
         return self._client
     
     @property
     def db(self) -> Database:
-        """Get database instance."""
         if self._db is None:
             raise DatabaseError("Database not initialized")
         return self._db
     
     def get_collection(self, name: str) -> Collection:
-        """Get collection by name."""
         return self.db[name]
     
     def create_collection(self, name: str, **kwargs: Any) -> Collection:

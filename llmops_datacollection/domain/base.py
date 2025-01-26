@@ -3,19 +3,27 @@ from abc import ABC
 from typing import Any, ClassVar, Dict, Generic, Type, TypeVar
 
 from loguru import logger
-from pydantic import UUID4, BaseModel, Field
+from pydantic import BaseModel, Field
+from pydantic.types import UUID1, UUID4
 from pymongo import errors
+import uuid
 
 from llmops_datacollection.domain.exceptions import ImproperlyConfigured
 from llmops_datacollection.infrastructure.db.mongo import connection
 
 T = TypeVar("T", bound="NoSQLBaseDocument")
 
-class NoSQLBaseDocument(BaseModel, Generic[T], ABC):
+class NoSQLBaseDocument(BaseModel, ABC):
     """Base document model with MongoDB integration."""
     
-    id: UUID4 = Field(default_factory=uuid.uuid4)
+    id: UUID4 = Field(default_factory=uuid.uuid4)  # Using UUID4 from pydantic.types
     _collection: ClassVar[str | None] = None
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "populate_by_alias": True,
+        "extra": "allow"
+    }
 
     def __eq__(self, value: object) -> bool:
         if not isinstance(value, self.__class__):
@@ -24,6 +32,8 @@ class NoSQLBaseDocument(BaseModel, Generic[T], ABC):
 
     def __hash__(self) -> int:
         return hash(self.id)
+
+
 
     @classmethod
     def from_mongo(cls: Type[T], data: dict) -> T:
@@ -45,11 +55,8 @@ class NoSQLBaseDocument(BaseModel, Generic[T], ABC):
 
     @classmethod
     def get_collection_name(cls) -> str:
-        """Get MongoDB collection name."""
         if cls._collection is None:
-            raise ImproperlyConfigured(
-                f"Collection name not set for {cls.__name__}"
-            )
+            raise ValueError(f"Collection name not set for {cls.__name__}")
         return cls._collection
 
     def save(self: T) -> T | None:

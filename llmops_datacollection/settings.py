@@ -1,22 +1,24 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+# llmops_datacollection/settings.py
+from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     """Application settings."""
     
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8"
-    )
+    # MongoDB connection settings
+    MONGODB_URI: str
+    DATABASE_NAME: str
 
-    # MongoDB settings
-    MONGODB_URI: str = "mongodb://localhost:27017"
-    DATABASE_NAME: str = "llmops_data"
+    # Collection names
+    USERS_COLLECTION: str = "users"
+    ARTICLES_COLLECTION: str = "articles" 
+    POSTS_COLLECTION: str = "posts"
+    REPOSITORIES_COLLECTION: str = "repositories"
     
-    # LinkedIn credentials
+    # LinkedIn credentials 
     LINKEDIN_EMAIL: str | None = None
     LINKEDIN_PASSWORD: str | None = None
     
-    # Optional GitHub token (for private repos)
+    # GitHub settings
     GITHUB_TOKEN: str | None = None
     
     # Browser settings
@@ -25,5 +27,13 @@ class Settings(BaseSettings):
     
     # Logging
     LOG_LEVEL: str = "INFO"
+
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": True,
+        # Fields to hide when printing
+        "protected_namespaces": ('MONGODB_', 'LINKEDIN_', 'GITHUB_')
+    }
 
 settings = Settings()
