@@ -118,12 +118,16 @@ class NoSQLBaseDocument(BaseModel, ABC):
             # Convert the document to a format MongoDB can handle
             mongo_doc = self.to_mongo()
             
-            # Use the custom insert method
-            connection.insert_one(collection, mongo_doc)
+            # Log document being saved
+            logger.info(f"Saving document to {self.get_collection_name()}: {mongo_doc}")
             
+            # Use the custom insert method
+            result = connection.insert_one(collection, mongo_doc)
+            
+            logger.info(f"Document saved with ID: {result.inserted_id}")
             return self
-        except errors.WriteError:
-            logger.exception("Failed to insert document")
+        except errors.WriteError as e:
+            logger.error(f"Failed to insert document: {str(e)}")
             return None
 
     @classmethod

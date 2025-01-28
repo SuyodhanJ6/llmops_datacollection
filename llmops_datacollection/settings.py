@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
 
+    #zenml pro
+    ZENML_TENANT_ID: str = None
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
