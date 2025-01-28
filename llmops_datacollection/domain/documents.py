@@ -43,3 +43,5 @@ class RepositoryDocument(ContentDocument):
     name: str
     link: str
     _collection: ClassVar[str] = "repositories"
+
+    

@@ -53,3 +53,11 @@ def mock_mongodb_connection(monkeypatch, test_db):
         "get_collection",
         mock_get_collection
     )
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "integration: marks tests as integration tests"
+    )
+    config.addinivalue_line(
+        "markers", "cli: marks tests as CLI tests"
+    )
