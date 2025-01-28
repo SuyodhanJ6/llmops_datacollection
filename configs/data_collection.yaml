@@ -1,0 +1,17 @@
+settings:
+  orchestrator:
+    synchronous: true
+    remote: true
+
+parameters:
+  user_full_name: Prashant Malge # [First Name(s)] [Last Name]
+  links:
+    # Medium articles
+    - https://medium.com/@prashantmalge/guide-to-llm-engineering-123
+    - https://medium.com/@prashantmalge/best-practices-for-llm-ops-456
+    # GitHub repositories  
+    - https://github.com/suyodhanj6/llmops-datacollection
+    - https://github.com/suyodhanj6/sample-repo-2
+    # LinkedIn posts
+    - https://linkedin.com/in/prashantmalge/posts/article1
+    - https://linkedin.com/in/prashantmalge/posts/article2

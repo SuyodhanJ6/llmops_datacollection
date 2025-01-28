@@ -5,18 +5,22 @@ description = "Data collection module for LLMOps project"
 authors = ["Prashant Malge <prashantmalge181@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.13"
 pymongo = "^4.6.2"
 selenium = "^4.21.0"
 beautifulsoup4 = "^4.12.3"
 loguru = "^0.7.2"
 pydantic = "^2.6.1"
 pydantic-settings = "^2.1.0"
-click = "^8.1.7"
+click = ">=8.0.1,<8.1.4"
 notebook = "^7.3.2"
 chromedriver-autoinstaller = "^0.6.4"
 webdriver-manager = "^4.0.2"
 pandas = "^2.2.3"
+zenml = "0.73.0"
+rich = "^13.7.1"
+poethepoet = "0.29.0"
+tqdm = "^4.67.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
@@ -27,3 +31,15 @@ pytest-cov = "^4.1.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poe.tasks]
+# Pipeline commands
+run-data-collection = "python -m tools.run --run-data-collection"
+run-export-artifacts = "python -m tools.run --run-export-artifacts"
+
+# ZenML settings
+set-zenml-tenant = "zenml login fbf3310c-71bf-4f90-94b4-062e3be1d5f9"
+export-settings = "poetry run python -m tools.run --export-settings"
+
+# Testing
+test = "poetry run pytest tests/"

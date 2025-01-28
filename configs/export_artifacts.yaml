@@ -1,0 +1,14 @@
+settings:
+  docker:
+    parent_image: llmops-datacollection:latest
+    skip_build: True
+  orchestrator:
+    synchronous: false
+    
+parameters:
+  artifact_names:
+    - users
+    - articles
+    - posts
+    - repositories
+  output_dir: "output/data_dump"
